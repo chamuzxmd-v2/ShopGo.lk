@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopGo.lk | Online Store</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f85606; /* Daraz Orange */
+            --bg: #f4f4f4;
+            --card-bg: #ffffff;
+            --text: #212121;
+            --border: #ddd;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --border: #333;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); transition: 0.3s; padding-bottom: 50px; }
+
+        /* --- Header & Navigation --- */
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .site-info h1 { font-size: 1.5rem; }
+        .site-info p { font-size: 0.7rem; opacity: 0.9; }
+
+        .search-container { display: flex; gap: 5px; }
+        #searchInput { 
+            flex: 1; padding: 10px; border: none; border-radius: 5px; outline: none;
+        }
+
+        /* --- Categories --- */
+        .category-bar {
+            display: flex; overflow-x: auto; gap: 10px; padding: 15px;
+            scrollbar-width: none;
+        }
+        .category-bar::-webkit-scrollbar { display: none; }
+        .cat-btn {
+            background: var(--card-bg); color: var(--text);
+            padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border);
+            white-space: nowrap; cursor: pointer; transition: 0.3s;
+        }
+        .cat-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* --- Product Grid --- */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px; padding: 10px;
+        }
+
+        .product-card {
+            background: var(--card-bg); border-radius: 8px; overflow: hidden;
+            box-shadow: var(--shadow); display: flex; flex-direction: column;
+            border: 1px solid var(--border);
+        }
+
+        .img-viewer { position: relative; width: 100%; aspect-ratio: 1/1; }
+        .main-img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        
+        .thumb-nav {
+            display: flex; justify-content: center; gap: 5px; padding: 5px;
+            background: rgba(0,0,0,0.05);
+        }
+        .thumb { width: 30px; height: 30px; object-fit: cover; border-radius: 3px; cursor: pointer; border: 1px solid transparent; }
+        .thumb.active { border-color: var(--primary); }
+
+        .p-details { padding: 10px; flex: 1; }
+        .p-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .p-price { color: var(--primary); font-weight: bold; font-size: 1.1rem; }
+        .p-tag { font-size: 0.6rem; background: #e8f5e9; color: #2e7d32; padding: 2px 6px; border-radius: 3px; display: inline-block; margin-top: 5px; }
+
+        .btn-whatsapp {
+            display: block; text-align: center; background: #25D366; color: white;
+            text-decoration: none; padding: 10px; margin: 10px; border-radius: 5px;
+            font-weight: bold; font-size: 0.8rem;
+        }
+
+        /* --- Admin Panel Modal --- */
+        #adminPanel {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 2000; overflow-y: auto; padding: 20px;
+        }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.8rem; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 5px; background: var(--card-bg); color: var(--text); }
+        
+        .admin-actions { display: flex; gap: 10px; margin-top: 20px; padding-bottom: 50px; }
+        .btn-save { background: #2e7d32; color: white; padding: 15px; border: none; border-radius: 5px; flex: 1; cursor: pointer; }
+        .btn-close { background: #c62828; color: white; padding: 15px; border: none; border-radius: 5px; flex: 1; cursor: pointer; }
+
+        /* --- UI Controls --- */
+        .fab {
+            position: fixed; bottom: 20px; right: 20px; background: var(--primary);
+            color: white; width: 50px; height: 50px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow);
+            cursor: pointer; font-size: 20px; z-index: 1500;
+        }
+        .mode-toggle { position: fixed; bottom: 80px; right: 20px; background: #555; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; z-index: 1500; }
+
+        footer { text-align: center; padding: 20px; font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 20px; opacity: 0.7; }
+
+        @media (min-width: 768px) {
+            .products-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <div class="site-info">
+            <h1 id="siteNameDisplay">ShopGo.lk</h1>
+            <p id="siteDescDisplay">පොටෝ එඩිට් කරල ඕනේ අය මාව Follow කරල මැසේජ් එකක් දාන්න ! 😻💝.</p>
+        </div>
+    </div>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search by name or code..." onkeyup="filterProducts()">
+    </div>
+</header>
+
+<div class="category-bar" id="categoryBar">
+    </div>
+
+<main class="products-grid" id="productGrid">
+    </main>
+
+<footer id="footerTextDisplay">
+    © 2024 ShopGo.lk - All Rights Reserved
+</footer>
+
+<div class="mode-toggle" onclick="toggleTheme()">🌓</div>
+<div class="fab" onclick="accessAdmin()">⚙️</div>
+
+<div id="adminPanel">
+    <h2 style="margin-bottom: 20px;">Store Management</h2>
+    
+    <div style="background: var(--card-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border);">
+        <h3>Global Settings</h3>
+        <div class="form-group">
+            <label>Site Name</label>
+            <input type="text" id="editSiteName">
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea id="editSiteDesc"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Footer Text</label>
+            <input type="text" id="editFooter">
+        </div>
+    </div>
+
+    <div style="background: var(--card-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+        <h3 id="formTitle">Add New Product</h3>
+        <input type="hidden" id="editIndex" value="-1">
+        
+        <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="pName">
+        </div>
+        <div class="form-group">
+            <label>Product Code</label>
+            <input type="text" id="pCode">
+        </div>
+        <div class="form-group">
+            <label>Price (Rs.)</label>
+            <input type="number" id="pPrice">
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <select id="pCat"></select>
+            <div style="display:flex; gap:5px; margin-top:5px;">
+                <input type="text" id="newCatInput" placeholder="New Category Name">
+                <button onclick="addCategory()" style="padding:0 10px;">Add</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Images (Select 3)</label>
+            <input type="file" id="pImages" multiple accept="image/*">
+            <small>First image is Main.</small>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea id="pDesc"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Tags (Comma separated)</label>
+            <input type="text" id="pTags" placeholder="Free Delivery, New, Sale">
+        </div>
+
+        <div class="admin-actions">
+            <button class="btn-save" onclick="saveProduct()">Save Product</button>
+            <button class="btn-close" onclick="closeAdmin()">Close</button>
+        </div>
+    </div>
+
+    <div id="adminProductList" style="margin-top: 20px;">
+        </div>
+</div>
+
+<script>
+    // Initial Data
+    let state = JSON.parse(localStorage.getItem('shopgo_db')) || {
+        siteName: "ShopGo.lk",
+        siteDesc: "පොටෝ එඩිට් කරල ඕනේ අය මාව Follow කරල මැසේජ් එකක් දාන්න ! 😻💝.",
+        footer: "© 2024 ShopGo.lk - All Rights Reserved",
+        categories: ["All", "Electric items", "Girls wears", "Boys wears"],
+        products: []
+    };
+
+    let currentFilter = "All";
+
+    function saveData() {
+        localStorage.setItem('shopgo_db', JSON.stringify(state));
+        renderSite();
+    }
+
+    // --- Theme Toggle ---
+    function toggleTheme() {
+        const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', theme);
+    }
+
+    // --- Admin Access ---
+    function accessAdmin() {
+        const pw = prompt("Enter Admin Password:");
+        if (pw === "Chamu2010@") {
+            document.getElementById('adminPanel').style.display = 'block';
+            loadAdminData();
+        } else {
+            alert("Wrong password!");
+        }
+    }
+
+    function closeAdmin() {
+        document.getElementById('adminPanel').style.display = 'none';
+    }
+
+    function loadAdminData() {
+        document.getElementById('editSiteName').value = state.siteName;
+        document.getElementById('editSiteDesc').value = state.siteDesc;
+        document.getElementById('editFooter').value = state.footer;
+        
+        const catSelect = document.getElementById('pCat');
+        catSelect.innerHTML = state.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+        
+        renderAdminProductList();
+    }
+
+    function addCategory() {
+        const val = document.getElementById('newCatInput').value;
+        if (val && !state.categories.includes(val)) {
+            state.categories.push(val);
+            document.getElementById('newCatInput').value = '';
+            loadAdminData();
+        }
+    }
+
+    // --- Image Handling ---
+    async function toBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    // --- Save Product ---
+    async function saveProduct() {
+        const idx = parseInt(document.getElementById('editIndex').value);
+        const name = document.getElementById('pName').value;
+        const code = document.getElementById('pCode').value;
+        const price = document.getElementById('pPrice').value;
+        const desc = document.getElementById('pDesc').value;
+        const cat = document.getElementById('pCat').value;
+        const tags = document.getElementById('pTags').value.split(',').map(t => t.trim());
+        const imageFiles = document.getElementById('pImages').files;
+
+        let images = [];
+        if (imageFiles.length > 0) {
+            for (let file of imageFiles) {
+                images.push(await toBase64(file));
+            }
+        } else if (idx !== -1) {
+            images = state.products[idx].images;
+        }
+
+        const productData = { name, code, price, desc, category: cat, tags, images };
+
+        if (idx === -1) {
+            state.products.push(productData);
+        } else {
+            state.products[idx] = productData;
+        }
+
+        // Global settings update
+        state.siteName = document.getElementById('editSiteName').value;
+        state.siteDesc = document.getElementById('editSiteDesc').value;
+        state.footer = document.getElementById('editFooter').value;
+
+        saveData();
+        alert("Saved successfully!");
+        resetForm();
+        renderAdminProductList();
+    }
+
+    function resetForm() {
+        document.getElementById('editIndex').value = "-1";
+        document.getElementById('pName').value = "";
+        document.getElementById('pCode').value = "";
+        document.getElementById('pPrice').value = "";
+        document.getElementById('pDesc').value = "";
+        document.getElementById('formTitle').innerText = "Add New Product";
+    }
+
+    function editProduct(idx) {
+        const p = state.products[idx];
+        document.getElementById('editIndex').value = idx;
+        document.getElementById('pName').value = p.name;
+        document.getElementById('pCode').value = p.code;
+        document.getElementById('pPrice').value = p.price;
+        document.getElementById('pDesc').value = p.desc;
+        document.getElementById('pCat').value = p.category;
+        document.getElementById('pTags').value = p.tags.join(', ');
+        document.getElementById('formTitle').innerText = "Edit Product: " + p.name;
+        document.getElementById('adminPanel').scrollTo(0,0);
+    }
+
+    function deleteProduct(idx) {
+        if(confirm("Delete this product?")) {
+            state.products.splice(idx, 1);
+            saveData();
+            renderAdminProductList();
+        }
+    }
+
+    function renderAdminProductList() {
+        const container = document.getElementById('adminProductList');
+        container.innerHTML = '<h3>Existing Products</h3>' + state.products.map((p, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #ddd; background:var(--card-bg);">
+                <span>${p.name} (${p.code})</span>
+                <div>
+                    <button onclick="editProduct(${i})" style="color:blue; margin-right:10px;">Edit</button>
+                    <button onclick="deleteProduct(${i})" style="color:red;">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // --- Storefront Rendering ---
+    function renderSite() {
+        // Site Details
+        document.getElementById('siteNameDisplay').innerText = state.siteName;
+        document.getElementById('siteDescDisplay').innerText = state.siteDesc;
+        document.getElementById('footerTextDisplay').innerText = state.footer;
+
+        // Categories
+        const catBar = document.getElementById('categoryBar');
+        catBar.innerHTML = state.categories.map(c => `
+            <button class="cat-btn ${currentFilter === c ? 'active' : ''}" onclick="setFilter('${c}')">${c}</button>
+        `).join('');
+
+        filterProducts();
+    }
+
+    function setFilter(cat) {
+        currentFilter = cat;
+        renderSite();
+    }
+
+    function filterProducts() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const grid = document.getElementById('productGrid');
+        
+        const filtered = state.products.filter(p => {
+            const matchesSearch = p.name.toLowerCase().includes(query) || p.code.toLowerCase().includes(query);
+            const matchesCat = currentFilter === "All" || p.category === currentFilter;
+            return matchesSearch && matchesCat;
+        });
+
+        grid.innerHTML = filtered.map((p, i) => {
+            const mainImg = p.images[0] || 'https://via.placeholder.com/300';
+            const thumbs = p.images.slice(0, 3);
+            
+            return `
+            <div class="product-card">
+                <div class="img-viewer">
+                    <img src="${mainImg}" id="mainImg-${i}" class="main-img">
+                </div>
+                <div class="thumb-nav">
+                    ${thumbs.map((img, tIdx) => `
+                        <img src="${img}" class="thumb" onclick="swapImage(${i}, '${img}')">
+                    `).join('')}
+                </div>
+                <div class="p-details">
+                    <div class="p-name">${p.name}</div>
+                    <div class="p-price">Rs. ${p.price}</div>
+                    <div style="font-size:0.7rem; color:#777;">Code: ${p.code}</div>
+                    ${p.tags.map(t => t ? `<span class="p-tag">${t}</span>` : '').join(' ')}
+                </div>
+                <a class="btn-whatsapp" href="https://wa.me/94784167385?text=${encodeURIComponent(
+                    `*New Order from ShopGo.lk*\n\n*Name:* ${p.name}\n*Code:* ${p.code}\n*Price:* Rs.${p.price}\n*Description:* ${p.desc}`
+                )}" target="_blank">ORDER VIA WHATSAPP</a>
+            </div>
+            `;
+        }).join('');
+    }
+
+    function swapImage(pIdx, imgSrc) {
+        document.getElementById(`mainImg-${pIdx}`).src = imgSrc;
+    }
+
+    // Initialize
+    window.onload = renderSite;
+</script>
+
+</body>
+</html>
+
